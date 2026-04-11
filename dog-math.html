@@ -297,6 +297,71 @@ body {
   0%  { transform:translateY(-20px) rotate(0deg); opacity:1; }
   100%{ transform:translateY(100vh)  rotate(720deg); opacity:0; }
 }
+
+/* ══ Responsive layout ══
+   xs : ≤430px  → iPhone portrait
+   sm : 431-667px → iPhone landscape
+   md : 668-900px → iPad portrait
+   lg : >900px  → iPad landscape / desktop
+*/
+
+/* xs: iPhone portrait */
+@media (max-width: 430px) {
+  #app { padding: 56px 10px 80px; }
+  #back-btn-wrap a, #back-btn-wrap button {
+    font-size: 12px !important; padding: 5px 12px 5px 9px !important;
+    border-width: 2px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+  }
+  .score-bar { padding: 8px 8px; }
+  .score-val { font-size: 17px; }
+  .score-lbl { font-size: 9px; }
+  .q-card { padding: 12px 10px; margin-bottom: 10px; }
+  .q-equation { font-size: 30px; letter-spacing: 2px; }
+  .step-area { padding: 10px 12px; margin-bottom: 10px; }
+  .step-text { font-size: 13px; }
+  .step-math { font-size: 17px; }
+  .basket-label { font-size: 10px; }
+  .basket { padding: 8px 6px; min-height: 60px !important; }
+  .three-section-wrap { flex-direction: column !important; align-items: stretch !important; gap: 4px !important; }
+  .three-section-wrap .basket-col-main { flex: none !important; width: 100% !important; }
+  .three-section-wrap .op-col { flex: none !important; width: 100% !important; height: 24px !important; padding-top: 0 !important; justify-content: flex-start !important; padding-left: 12px !important; }
+  .three-section-wrap .op-col div { font-size: 18px !important; }
+  .btn { font-size: 14px; padding: 12px 8px; }
+  .btn-ans { font-size: 20px; padding: 13px 6px; }
+  .btn-row { gap: 8px; }
+  .answers-grid { gap: 8px; }
+}
+
+/* sm: iPhone landscape / small portrait */
+@media (min-width: 431px) and (max-width: 667px) {
+  #app { padding: 60px 14px 80px; max-width: 100%; }
+  #back-btn-wrap a, #back-btn-wrap button { font-size: 13px !important; padding: 6px 13px 6px 10px !important; }
+  .score-val { font-size: 18px; }
+  .q-equation { font-size: 34px; }
+  .three-section-wrap { gap: 4px !important; }
+  .three-section-wrap .op-col { flex: 0.15 !important; padding-top: 22px !important; }
+  .three-section-wrap .op-col div { font-size: 18px !important; }
+  .three-section-wrap .basket-col-main { flex: 1 !important; }
+  .basket { padding: 8px 6px; }
+  .basket-label { font-size: 11px; }
+  .btn { font-size: 14px; padding: 12px 8px; }
+  .btn-ans { font-size: 20px; }
+}
+
+/* md: iPad portrait */
+@media (min-width: 668px) and (max-width: 900px) {
+  #app { max-width: 580px; padding-top: 60px; }
+  #back-btn-wrap a, #back-btn-wrap button { font-size: 13px !important; }
+  .q-equation { font-size: 36px; }
+  .three-section-wrap { gap: 8px !important; }
+  .three-section-wrap .op-col { flex: 0.18 !important; }
+}
+
+/* very small: arrow only */
+@media (max-width: 360px) {
+  .back-label { display: none; }
+  #back-btn-wrap a, #back-btn-wrap button { padding: 6px 10px !important; }
+}
 </style>
 </head>
 <body>
@@ -359,22 +424,22 @@ body {
     </div>
 
     <!-- 3-section: extra | ten | gone -->
-    <div style="display:flex;gap:6px;margin-bottom:12px;align-items:flex-start;">
-      <div style="flex:1;">
+    <div class="three-section-wrap" style="display:flex;gap:6px;margin-bottom:12px;align-items:flex-start;">
+      <div class="basket-col-main" style="flex:1;">
         <div class="basket-label" id="l-label-extra">多的</div>
         <div class="basket" id="basket-extra" style="min-height:70px;"><div class="dogs-grid" id="dogs-extra"></div></div>
       </div>
-      <div id="l-op1-wrap" style="flex:0.22;display:flex;align-items:center;justify-content:center;padding-top:24px;">
+      <div id="l-op1-wrap" class="op-col" style="flex:0.22;display:flex;align-items:center;justify-content:center;padding-top:24px;">
         <div style="font-size:22px;font-weight:900;color:var(--brown);">+</div>
       </div>
-      <div style="flex:1.5;">
+      <div class="basket-col-main" style="flex:1.5;">
         <div class="basket-label" id="l-label-ten">10隻</div>
         <div class="basket" id="basket-ten" style="min-height:70px;"><div class="dogs-grid" id="dogs-ten"></div></div>
       </div>
-      <div id="l-op2-wrap" style="flex:0.22;display:flex;align-items:center;justify-content:center;padding-top:24px;">
+      <div id="l-op2-wrap" class="op-col" style="flex:0.22;display:flex;align-items:center;justify-content:center;padding-top:24px;">
         <div style="font-size:22px;font-weight:900;color:var(--red);">−</div>
       </div>
-      <div id="l-gone-wrap" style="flex:1;">
+      <div id="l-gone-wrap" class="basket-col-main" style="flex:1;">
         <div class="basket-label" id="l-label-gone">跑走</div>
         <div class="basket removed" id="basket-gone" style="min-height:70px;"><div class="dogs-grid" id="dogs-gone"></div></div>
       </div>
@@ -441,9 +506,9 @@ function showScreen(id){
   $(id).classList.add('active');
   const wrap=$('back-btn-wrap');
   if(id==='screen-home'){
-    wrap.innerHTML='<a href="index.html" style="display:inline-flex;align-items:center;gap:5px;background:white;border:3px solid #C0692A;border-radius:99px;padding:7px 16px 7px 12px;font-family:Nunito,sans-serif;font-size:14px;font-weight:800;color:#C0692A;text-decoration:none;box-shadow:0 3px 12px rgba(0,0,0,0.3);">← 首頁</a>';
+    wrap.innerHTML='<a href="index.html" style="display:inline-flex;align-items:center;gap:5px;background:white;border:3px solid #C0692A;border-radius:99px;padding:7px 16px 7px 12px;font-family:Nunito,sans-serif;font-size:14px;font-weight:800;color:#C0692A;text-decoration:none;box-shadow:0 3px 12px rgba(0,0,0,0.3);">← <span class="back-label">首頁</span></a>';
   } else {
-    wrap.innerHTML='<button onclick="goHome()" style="display:inline-flex;align-items:center;gap:5px;background:white;border:3px solid #C0692A;border-radius:99px;padding:7px 16px 7px 12px;font-family:Nunito,sans-serif;font-size:14px;font-weight:800;color:#C0692A;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,0.3);">← 狗狗首頁</button>';
+    wrap.innerHTML='<button onclick="goHome()" style="display:inline-flex;align-items:center;gap:5px;background:white;border:3px solid #C0692A;border-radius:99px;padding:7px 16px 7px 12px;font-family:Nunito,sans-serif;font-size:14px;font-weight:800;color:#C0692A;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,0.3);">← <span class="back-label">狗狗首頁</span></button>';
   }
 }
 function showToast(msg, color){
@@ -1031,7 +1096,7 @@ function confetti(){
 }
 
 // Init back button
-$('back-btn-wrap').innerHTML='<a href="index.html" style="display:inline-flex;align-items:center;gap:5px;background:white;border:3px solid #C0692A;border-radius:99px;padding:7px 16px 7px 12px;font-family:Nunito,sans-serif;font-size:14px;font-weight:800;color:#C0692A;text-decoration:none;box-shadow:0 3px 12px rgba(0,0,0,0.3);">← 首頁</a>';
+$('back-btn-wrap').innerHTML='<a href="index.html" style="display:inline-flex;align-items:center;gap:5px;background:white;border:3px solid #C0692A;border-radius:99px;padding:7px 16px 7px 12px;font-family:Nunito,sans-serif;font-size:14px;font-weight:800;color:#C0692A;text-decoration:none;box-shadow:0 3px 12px rgba(0,0,0,0.3);">← <span class=\"back-label\">首頁</span></a>';
 </script>
 </body>
 </html>
