@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>狗狗減法樂園</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #FFF8EE;
+  --card:      #FFFFFF;
+  --brown:     #C0692A;
+  --brown2:    #96491A;
+  --amber:     #F4A340;
+  --amber2:    #D4831A;
+  --amber-bg:  #FFF4E0;
+  --red:       #E8453C;
+  --red2:      #C0392B;
+  --red-bg:    #FFF0EE;
+  --teal:      #2EC4B6;
+  --teal2:     #1A9E92;
+  --teal-bg:   #E8FAFA;
+  --green:     #27AE60;
+  --green2:    #1E8449;
+  --green-bg:  #E8FAF0;
+  --blue:      #3498DB;
+  --blue2:     #217DBB;
+  --blue-bg:   #EAF4FD;
+  --yellow:    #FFD166;
+  --yellow2:   #E6B800;
+  --text:      #2C1A08;
+  --text2:     #8A6040;
+  --border:    #E8D5B8;
+  --shadow:    rgba(192,105,42,0.13);
+  --radius:    20px;
+  --radius-sm: 12px;
+}
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+/* ── Park background ── */
+.bg-scene {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: linear-gradient(180deg, #87CEEB 0%, #B0E0FF 40%, #D4F0C0 70%, #A8D878 100%);
+  overflow: hidden;
+}
+.cloud {
+  position: absolute; background: white; border-radius: 50px; opacity: 0.85;
+  animation: drift linear infinite;
+}
+.cloud::before, .cloud::after { content:''; position:absolute; background:white; border-radius:50%; }
+.cloud1 { width:100px;height:32px;top:7%;animation-duration:30s;animation-delay:0s;left:-120px; }
+.cloud1::before { width:44px;height:44px;top:-20px;left:14px; }
+.cloud1::after  { width:30px;height:30px;top:-12px;left:48px; }
+.cloud2 { width:70px;height:24px;top:16%;animation-duration:42s;animation-delay:-14s;left:-90px; }
+.cloud2::before { width:32px;height:32px;top:-16px;left:10px; }
+.cloud2::after  { width:22px;height:22px;top:-9px;left:32px; }
+.cloud3 { width:120px;height:36px;top:4%;animation-duration:52s;animation-delay:-25s;left:-140px; }
+.cloud3::before { width:54px;height:54px;top:-24px;left:20px; }
+.cloud3::after  { width:38px;height:38px;top:-16px;left:62px; }
+@keyframes drift { from{transform:translateX(0);} to{transform:translateX(calc(100vw + 200px));} }
+
+.sun {
+  position:absolute; top:22px; right:36px;
+  width:60px; height:60px; border-radius:50%;
+  background:#FFD166;
+  box-shadow: 0 0 0 10px rgba(255,209,102,0.25), 0 0 0 22px rgba(255,209,102,0.1);
+  animation: sun-pulse 4s ease-in-out infinite;
+}
+@keyframes sun-pulse {
+  0%,100%{ box-shadow:0 0 0 10px rgba(255,209,102,0.25),0 0 0 22px rgba(255,209,102,0.1); }
+  50%    { box-shadow:0 0 0 16px rgba(255,209,102,0.3), 0 0 0 32px rgba(255,209,102,0.1); }
+}
+
+.grass {
+  position:absolute; bottom:0; left:0; right:0; height:90px;
+  background:linear-gradient(180deg,#5CB85C 0%,#4CAE4C 100%);
+  border-radius:50% 50% 0 0 / 22px 22px 0 0;
+}
+.grass::before {
+  content:'';position:absolute;top:-12px;left:0;right:0;height:20px;
+  background:radial-gradient(ellipse 18px 12px at 50% 100%, #6CCF6C 49%, transparent 50%);
+  background-size:36px 12px;
+}
+.tree {
+  position:absolute; bottom:60px;
+}
+.tree-trunk { width:14px;height:30px;background:#8B5E3C;border-radius:3px;margin:0 auto; }
+.tree-top   { width:0;height:0;border-left:24px solid transparent;border-right:24px solid transparent;border-bottom:44px solid #3A9C3A;margin:0 auto; }
+.tree-top2  { width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:38px solid #4CAE4C;margin:0 auto;margin-top:-28px; }
+.t1{left:4%;}  .t2{left:18%;} .t3{right:8%;} .t4{right:22%;}
+
+/* ── Layout ── */
+#app {
+  position:relative; z-index:1;
+  max-width:520px; margin:0 auto;
+  padding:20px 16px 100px;
+  min-height:100vh;
+}
+
+/* ── Screens ── */
+.screen { display:none; }
+.screen.active { display:block; animation:fadeIn 0.4s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(12px);} to{opacity:1;transform:translateY(0);} }
+
+/* ── Cards ── */
+.card {
+  background:rgba(255,255,255,0.93);
+  border:2px solid var(--border);
+  border-radius:var(--radius);
+  padding:18px 20px; margin-bottom:14px;
+  box-shadow:0 4px 0 rgba(192,105,42,0.18), 0 8px 24px var(--shadow);
+}
+
+/* ── Sign ── */
+.sign {
+  background:rgba(255,255,255,0.96);
+  border:3px solid var(--brown);
+  border-radius:var(--radius);
+  padding:14px 20px 18px; text-align:center; margin-bottom:16px;
+  box-shadow:0 5px 0 var(--brown2), 0 8px 24px var(--shadow);
+  position:relative;
+}
+.sign::before { content:'🐶'; position:absolute; top:-22px; left:50%; transform:translateX(-50%); font-size:36px; }
+.sign-title   { font-size:24px; font-weight:900; color:var(--brown); margin-top:12px; letter-spacing:0.5px; }
+.sign-sub     { font-size:13px; color:var(--text2); margin-top:3px; font-weight:700; }
+
+/* ── Mode buttons ── */
+.mode-btns { display:flex; flex-direction:column; gap:10px; }
+.btn-mode {
+  background:rgba(255,255,255,0.95); border:2px solid var(--border);
+  border-radius:var(--radius-sm); padding:16px 18px;
+  cursor:pointer; text-align:left; transition:all 0.15s;
+  box-shadow:0 3px 0 rgba(192,105,42,0.15); font-family:'Nunito',sans-serif;
+}
+.btn-mode:hover { transform:translateY(-2px); border-color:var(--brown); box-shadow:0 5px 0 var(--brown2); }
+.btn-mode:active { transform:translateY(1px); }
+.btn-mode-title { font-size:16px; font-weight:900; color:var(--brown); }
+.btn-mode-desc  { font-size:13px; color:var(--text2); font-weight:600; margin-top:2px; }
+
+/* ── Score bar ── */
+.score-bar {
+  display:flex; justify-content:space-between; align-items:center;
+  background:rgba(255,255,255,0.92); border:2px solid var(--border);
+  border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:12px;
+  box-shadow:0 3px 0 rgba(192,105,42,0.15);
+}
+.score-item { text-align:center; }
+.score-val   { font-size:20px; font-weight:900; }
+.score-val.sc{ color:var(--brown); }
+.score-val.st{ color:var(--red); }
+.score-lbl   { font-size:10px; font-weight:800; color:var(--text2); letter-spacing:0.5px; text-transform:uppercase; }
+
+/* ── Question card ── */
+.q-card {
+  background:rgba(255,255,255,0.96);
+  border:2px solid var(--border); border-radius:var(--radius);
+  padding:18px 16px; margin-bottom:12px;
+  box-shadow:0 4px 0 rgba(192,105,42,0.15), 0 6px 20px var(--shadow);
+  text-align:center;
+}
+.q-label { font-size:11px; font-weight:800; color:var(--text2); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+.q-equation { font-size:40px; font-weight:900; color:var(--text); letter-spacing:4px; }
+.q-equation .op  { color:var(--red); }
+.q-equation .eq  { color:var(--text2); }
+.q-equation .ans { color:var(--brown); }
+
+/* ── Step explainer ── */
+.step-area {
+  background:var(--amber-bg); border:2px dashed var(--amber);
+  border-radius:var(--radius-sm); padding:12px 16px; margin-bottom:12px; min-height:64px;
+}
+.step-title { font-size:12px; font-weight:900; color:var(--brown); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+.step-text  { font-size:14px; font-weight:700; color:var(--text); line-height:1.6; }
+.step-math  { font-size:20px; font-weight:900; color:var(--brown2); text-align:center; margin-top:6px; }
+
+/* ── Dog baskets (kennels) ── */
+.baskets-wrapper { display:flex; gap:10px; margin-bottom:12px; align-items:flex-start; }
+.basket-col { flex:1; }
+.basket-label {
+  font-size:11px; font-weight:800; color:var(--text2);
+  text-transform:uppercase; letter-spacing:0.5px; text-align:center; margin-bottom:5px;
+}
+.basket {
+  background:rgba(255,255,255,0.92); border:2px solid var(--border);
+  border-radius:var(--radius-sm); padding:10px 8px; min-height:80px;
+  position:relative; box-shadow:0 3px 0 rgba(192,105,42,0.2); transition:all 0.3s;
+}
+.basket.source  { border-color:var(--amber); background:var(--amber-bg); box-shadow:0 3px 0 var(--amber2); }
+.basket.removed { border-color:var(--red);   background:var(--red-bg);   box-shadow:0 3px 0 var(--red2),0 0 0 3px rgba(232,69,60,0.15); animation:shake 0.4s ease; }
+.basket.result  { border-color:var(--teal);  background:var(--teal-bg);  box-shadow:0 3px 0 var(--teal2); }
+@keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-4px);} 75%{transform:translateX(4px);} }
+
+.dogs-grid { display:grid; grid-template-columns:repeat(5, 34px); gap:4px; justify-content:center; }
+
+/* ── Dog item ── */
+.dog-item {
+  width:34px; height:34px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:24px; line-height:1; cursor:default;
+}
+.dog-item.pop     { animation:pop-in 0.35s cubic-bezier(0.34,1.56,0.64,1) both; }
+.dog-item.dim     { opacity:0.22; transform:scale(0.8); filter:grayscale(80%); }
+.dog-item.leaving { animation:leave-out 0.5s cubic-bezier(0.55,0,1,0.45) both; }
+.dog-item.run-away{ animation:run-away 0.6s ease-out both; }
+@keyframes pop-in    { from{transform:scale(0) rotate(-15deg);opacity:0;} to{transform:scale(1) rotate(0);opacity:1;} }
+@keyframes leave-out { from{transform:scale(1);opacity:1;} to{transform:scale(0) rotate(20deg) translateY(-20px);opacity:0;} }
+@keyframes run-away  { 0%{transform:translateX(0) scale(1);opacity:1;} 60%{transform:translateX(30px) scale(1.1);opacity:0.6;} 100%{transform:translateX(60px) scale(0);opacity:0;} }
+
+/* ── Ten-frame ── */
+  display:grid; grid-template-columns:repeat(5,1fr); gap:4px;
+  background:rgba(255,255,255,0.92); border:2px solid var(--border);
+  border-radius:var(--radius-sm); padding:7px;
+  box-shadow:0 3px 0 rgba(192,105,42,0.12);
+}
+  aspect-ratio:1; border-radius:8px;
+  background:var(--amber-bg); border:2px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; transition:all 0.35s;
+}
+@keyframes cell-out { from{transform:scale(1);opacity:1;} to{transform:scale(0);opacity:0;} }
+@keyframes cell-pop { from{transform:scale(0);} to{transform:scale(1);} }
+
+/* ── Buttons ── */
+.btn-row { display:flex; gap:10px; margin-bottom:10px; }
+.btn {
+  flex:1; padding:13px 10px;
+  font-family:'Nunito',sans-serif; font-size:15px; font-weight:800;
+  border-radius:var(--radius-sm); cursor:pointer; transition:all 0.15s;
+  border:2px solid transparent; letter-spacing:0.3px;
+}
+.btn:active { transform:translateY(2px) !important; }
+.btn-brown  { background:var(--brown);  color:#fff; border-color:var(--brown2); box-shadow:0 4px 0 var(--brown2); }
+.btn-brown:hover  { transform:translateY(-2px); box-shadow:0 6px 0 var(--brown2); }
+.btn-yellow { background:var(--yellow); color:var(--text); border-color:var(--yellow2); box-shadow:0 4px 0 var(--yellow2); }
+.btn-yellow:hover { transform:translateY(-2px); box-shadow:0 6px 0 var(--yellow2); }
+.btn-teal   { background:var(--teal);   color:#fff; border-color:var(--teal2); box-shadow:0 4px 0 var(--teal2); }
+.btn-teal:hover   { transform:translateY(-2px); box-shadow:0 6px 0 var(--teal2); }
+.btn-ghost  { background:rgba(255,255,255,0.92); color:var(--text2); border-color:var(--border); box-shadow:0 3px 0 rgba(192,105,42,0.15); font-size:13px; }
+.btn-ghost:hover  { transform:translateY(-1px); border-color:var(--brown); }
+
+/* ── Answer buttons ── */
+.answers-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+.btn-ans {
+  padding:16px 8px; font-size:24px; font-weight:900;
+  background:rgba(255,255,255,0.92); border:2px solid var(--border);
+  border-radius:var(--radius-sm); cursor:pointer;
+  transition:all 0.15s; color:var(--text);
+  font-family:'Nunito',sans-serif;
+  box-shadow:0 3px 0 rgba(192,105,42,0.15);
+}
+.btn-ans:hover:not(:disabled) { border-color:var(--brown); color:var(--brown); transform:translateY(-2px); box-shadow:0 5px 0 var(--brown2); }
+.btn-ans.correct { background:var(--green-bg); border-color:var(--green); color:var(--green2); box-shadow:0 3px 0 var(--green2); }
+.btn-ans.wrong   { background:#F5F5F5; border-color:#CCC; color:#999; box-shadow:0 3px 0 #BBB; opacity:0.6; }
+.btn-ans:disabled{ cursor:default; }
+
+/* ── Result ── */
+.result-card {
+  background:rgba(255,255,255,0.96); border:3px solid var(--yellow);
+  border-radius:var(--radius); padding:28px 20px; text-align:center;
+  box-shadow:0 6px 0 var(--yellow2), 0 12px 32px var(--shadow);
+}
+.result-emoji { font-size:60px; display:block; margin-bottom:6px; animation:bounce-big 1s ease infinite; }
+@keyframes bounce-big { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-14px);} }
+.result-title { font-size:26px; font-weight:900; color:var(--brown); }
+.result-score { font-size:54px; font-weight:900; color:var(--red); }
+.result-sub   { font-size:13px; color:var(--text2); font-weight:700; margin-bottom:1rem; }
+.result-stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:1rem; }
+.r-stat       { background:var(--amber-bg); border-radius:var(--radius-sm); padding:12px; border:2px solid var(--border); }
+.r-stat-val   { font-size:22px; font-weight:900; color:var(--brown); }
+.r-stat-lbl   { font-size:11px; color:var(--text2); font-weight:700; margin-top:2px; }
+
+/* ── Toast ── */
+.toast {
+  position:fixed; top:20px; left:50%; transform:translateX(-50%) translateY(-80px);
+  color:white; font-size:15px; font-weight:800;
+  padding:10px 22px; border-radius:99px;
+  transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  z-index:999; white-space:nowrap; box-shadow:0 4px 16px rgba(0,0,0,0.18);
+}
+.toast.show { transform:translateX(-50%) translateY(0); }
+
+/* ── Confetti ── */
+.confetti-piece {
+  position:fixed; border-radius:2px; z-index:998; pointer-events:none;
+  animation:confetti-fall 1.6s ease-in forwards;
+}
+@keyframes confetti-fall {
+  0%  { transform:translateY(-20px) rotate(0deg); opacity:1; }
+  100%{ transform:translateY(100vh)  rotate(720deg); opacity:0; }
+}
+</style>
+</head>
+<body>
+<div id="back-btn-wrap" style="position:fixed;top:14px;left:14px;z-index:9999;"></div>
+
+
+<div class="bg-scene" id="bg-scene">
+  <div class="sun"></div>
+  <div class="cloud cloud1"></div>
+  <div class="cloud cloud2"></div>
+  <div class="cloud cloud3"></div>
+  <div class="grass"></div>
+  <div class="tree t1"><div class="tree-top"></div><div class="tree-top2"></div><div class="tree-trunk"></div></div>
+  <div class="tree t2"><div class="tree-top"></div><div class="tree-top2"></div><div class="tree-trunk"></div></div>
+  <div class="tree t3"><div class="tree-top"></div><div class="tree-top2"></div><div class="tree-trunk"></div></div>
+  <div class="tree t4"><div class="tree-top"></div><div class="tree-top2"></div><div class="tree-trunk"></div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div id="app">
+
+  <!-- HOME -->
+  <div id="screen-home" class="screen active">
+    <div class="sign">
+      <div class="sign-title">🐶 狗狗減法樂園</div>
+      <div class="sign-sub">看狗狗跑走，學18以內減法</div>
+    </div>
+    <div class="card" style="text-align:center;color:var(--text2);font-size:14px;font-weight:700;line-height:1.8;">
+      公園裡有一群狗狗！<br>跑走幾隻之後，還剩幾隻？<br>用<span style="color:var(--brown);font-weight:900;">拆10法</span>一步步算出來！
+    </div>
+    <div class="mode-btns">
+      <button class="btn-mode" onclick="startLearn()">
+        <div class="btn-mode-title">🎬 動畫教學</div>
+        <div class="btn-mode-desc">跟著步驟看狗狗怎麼跑走，有動畫解說</div>
+      </button>
+      <button class="btn-mode" onclick="startPractice()">
+        <div class="btn-mode-title">🎯 自己算算看</div>
+        <div class="btn-mode-desc">選出正確答案，不會可以看提示！</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- LEARN MODE -->
+  <div id="screen-learn" class="screen">
+    <div class="score-bar">
+      <div class="score-item"><div class="score-val sc" id="l-qnum">1</div><div class="score-lbl">題目</div></div>
+      <div class="score-item"><div class="score-val sc" id="l-step-disp">1/4</div><div class="score-lbl">步驟</div></div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-label">今天的題目</div>
+      <div class="q-equation" id="l-equation">？</div>
+    </div>
+
+    <div class="step-area">
+      <div class="step-title" id="l-step-title">準備開始</div>
+      <div class="step-text"  id="l-step-text">按下「下一步」看狗狗怎麼跑走！🐾</div>
+      <div class="step-math"  id="l-step-math"></div>
+    </div>
+
+    <!-- 3-section: extra | ten | gone -->
+    <div style="display:flex;gap:6px;margin-bottom:12px;align-items:flex-start;">
+      <div style="flex:1;">
+        <div class="basket-label" id="l-label-extra">多的</div>
+        <div class="basket" id="basket-extra" style="min-height:70px;"><div class="dogs-grid" id="dogs-extra"></div></div>
+      </div>
+      <div id="l-op1-wrap" style="flex:0.22;display:flex;align-items:center;justify-content:center;padding-top:24px;">
+        <div style="font-size:22px;font-weight:900;color:var(--brown);">+</div>
+      </div>
+      <div style="flex:1.5;">
+        <div class="basket-label" id="l-label-ten">10隻</div>
+        <div class="basket" id="basket-ten" style="min-height:70px;"><div class="dogs-grid" id="dogs-ten"></div></div>
+      </div>
+      <div id="l-op2-wrap" style="flex:0.22;display:flex;align-items:center;justify-content:center;padding-top:24px;">
+        <div style="font-size:22px;font-weight:900;color:var(--red);">−</div>
+      </div>
+      <div id="l-gone-wrap" style="flex:1;">
+        <div class="basket-label" id="l-label-gone">跑走</div>
+        <div class="basket removed" id="basket-gone" style="min-height:70px;"><div class="dogs-grid" id="dogs-gone"></div></div>
+      </div>
+    </div>
+
+
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="learnPrev()" id="btn-prev" disabled>◀ 上一步</button>
+      <button class="btn btn-yellow" onclick="learnNextOrNew()" id="btn-next-l">下一步 ▶</button>
+    </div>
+    <div class="btn-row" id="end-btns" style="display:none;">
+      <button class="btn btn-ghost" onclick="learnReplay()">🔁 重播</button>
+    </div>
+  </div>
+
+  <!-- PRACTICE MODE -->
+  <div id="screen-practice" class="screen">
+    <div class="score-bar">
+      <div class="score-item"><div class="score-val sc" id="p-score">0</div><div class="score-lbl">分數</div></div>
+      <div class="score-item"><div class="score-val sc" id="p-qnum">1/10</div><div class="score-lbl">題目</div></div>
+      <div class="score-item"><div class="score-val st" id="p-streak">0</div><div class="score-lbl">連答</div></div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-label">這題怎麼算？</div>
+      <div class="q-equation" id="p-equation">？</div>
+    </div>
+
+    <div id="p-hint-area" style="display:none; margin-bottom:12px;"></div>
+
+    <div class="answers-grid" id="p-answers"></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="showHint()" id="btn-hint">💡 看提示</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="screen-result" class="screen">
+    <div class="result-card">
+      <span class="result-emoji" id="r-emoji">🎉</span>
+      <div class="result-title" id="r-title">好棒！</div>
+      <div class="result-score" id="r-score">0</div>
+      <div class="result-sub">總分</div>
+      <div class="result-stats">
+        <div class="r-stat"><div class="r-stat-val" id="r-correct">0</div><div class="r-stat-lbl">答對題數</div></div>
+        <div class="r-stat"><div class="r-stat-val" id="r-streak">0</div><div class="r-stat-lbl">最高連答</div></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-brown" onclick="startPractice()">再玩一次 🔁</button>
+        <button class="btn btn-yellow" onclick="goHome()">← 狗狗首頁</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const DOG = '🐶';
+
+function $(id){ return document.getElementById(id); }
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+  const wrap=$('back-btn-wrap');
+  if(id==='screen-home'){
+    wrap.innerHTML='<a href="index.html" style="display:inline-flex;align-items:center;gap:5px;background:white;border:3px solid #C0692A;border-radius:99px;padding:7px 16px 7px 12px;font-family:Nunito,sans-serif;font-size:14px;font-weight:800;color:#C0692A;text-decoration:none;box-shadow:0 3px 12px rgba(0,0,0,0.3);">← 首頁</a>';
+  } else {
+    wrap.innerHTML='<button onclick="goHome()" style="display:inline-flex;align-items:center;gap:5px;background:white;border:3px solid #C0692A;border-radius:99px;padding:7px 16px 7px 12px;font-family:Nunito,sans-serif;font-size:14px;font-weight:800;color:#C0692A;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,0.3);">← 狗狗首頁</button>';
+  }
+}
+function showToast(msg, color){
+  const t=$('toast'); t.textContent=msg; t.style.background=color||'#C0692A';
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1900);
+}
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a; }
+
+// ── Question generation ──
+// a (minuend): 3-18, b (subtrahend): 1-9, result ≥ 1
+// Strategy A (cross-10): a > 10, b > a-10  →  拆成 (a-10) + 10 - b
+// Strategy B (simple):   a ≤ 10, or result ≥ 10
+// 追蹤最近出現過的題目，避免重複
+let _recentQs = [];
+
+function makeQuestion(exclude){
+  const MAX_TRIES = 30;
+  for(let t=0; t<MAX_TRIES; t++){
+    const r = Math.random();
+    let a, b;
+    if(r < 0.60){
+      a = Math.floor(Math.random()*8)+11;
+      const bMin = a-10+1;
+      const bMax = Math.min(9, a-1);
+      b = bMin + Math.floor(Math.random()*(bMax-bMin+1));
+    } else if(r < 0.85){
+      a = Math.floor(Math.random()*8)+11;
+      const bMax = a-10;
+      b = Math.floor(Math.random()*bMax)+1;
+    } else {
+      a = Math.floor(Math.random()*8)+3;
+      b = Math.floor(Math.random()*(a-1))+1;
+    }
+    const key = a+'-'+b;
+    // 避免跟排除的題目或最近3題重複
+    const skipList = [..._recentQs, ...(exclude||[])];
+    if(!skipList.includes(key)){
+      _recentQs.push(key);
+      if(_recentQs.length > 5) _recentQs.shift();
+      return { a, b, result: a-b };
+    }
+  }
+  // fallback（極少發生）
+  const a=15, b=7;
+  return { a, b, result: a-b };
+}
+
+function makeQuestionSet(n){
+  const used = [];
+  return Array.from({length:n}, ()=>{
+    const q = makeQuestion(used);
+    used.push(q.a+'-'+q.b);
+    return q;
+  });
+}
+
+// ── Strategy analysis ──
+// 正確拆10法：a - b，其中 a > 10 且需借位
+// a = 10 + extra
+// 先算 10 - b = tenRem
+// 再加 extra：tenRem + extra = result
+function strategy(q){
+  const { a, b } = q;
+  if(a > 10 && b > a - 10){
+    const extra  = a - 10;   // 多出10的部分
+    const tenRem = 10 - b;   // 10減掉b剩的
+    return { type:'split10', extra, tenRem };
+  }
+  return { type:'simple' };
+}
+
+// ── Dog element factory ──
+function makeDog(anim, delay, dim){
+  const d=document.createElement('div');
+  d.className='dog-item'; d.textContent=DOG;
+  if(anim){ d.classList.add(anim); }
+  if(delay){ d.style.animationDelay=delay+'ms'; }
+  if(dim)  { d.classList.add('dim'); }
+  return d;
+}
+
+function goHome(){ showScreen('screen-home'); }
+
+// ════════════════════
+//  LEARN MODE
+// ════════════════════
+let lQ=null, lStep=0;
+
+function startLearn(){
+  lQ=makeQuestion(); lStep=0;
+  resetLearnUI();
+  showScreen('screen-learn');
+  renderLearnStep(0);
+}
+function learnNewQ(){
+  lQ=makeQuestion([lQ ? lQ.a+'-'+lQ.b : '']); lStep=0;
+  resetLearnUI();
+  renderLearnStep(0);
+}
+function learnReplay(){
+  lStep=0; resetLearnUI(); renderLearnStep(0);
+}
+function resetLearnUI(){
+  $('end-btns').style.display='none';
+  const nb=$('btn-next-l');
+  nb.style.display='';
+  nb.textContent='下一步 ▶';
+  nb.className='btn btn-yellow';
+  $('btn-prev').disabled=true;
+}
+
+function learnNextOrNew(){
+  const s=strategy(lQ);
+  const maxStep = (s.type==='split10' || (s.type==='simple' && lQ.a>10)) ? 3 : 2;
+  if(lStep>=maxStep){ learnNewQ(); return; }
+  learnNext();
+}
+
+function learnNext(){
+  const s=strategy(lQ);
+  const maxStep = (s.type==='split10' || (s.type==='simple' && lQ.a>10)) ? 3 : 2;
+  lStep=Math.min(lStep+1, maxStep);
+  $('btn-prev').disabled=false;
+  renderLearnStep(lStep);
+}
+function learnPrev(){
+  lStep=Math.max(lStep-1,0);
+  $('btn-prev').disabled=(lStep===0);
+  const nb=$('btn-next-l');
+  nb.style.display='';
+  nb.textContent='下一步 ▶';
+  nb.className='btn btn-yellow';
+  $('end-btns').style.display='none';
+  renderLearnStep(lStep);
+}
+
+function renderLearnStep(step){
+  const {a,b,result}=lQ;
+  const s=strategy(lQ);
+  const totalSteps = (s.type==='split10' || (s.type==='simple' && a>10)) ? 4 : 3;
+
+  // Equation
+  const showAns=(step===totalSteps-1);
+  $('l-equation').innerHTML=
+    `<span>${a}</span> <span class="op">−</span> <span>${b}</span> <span class="eq">=</span> `+
+    (showAns?`<span class="ans">${result}</span>`:`<span class="ans">？</span>`);
+
+  // Step text
+  let title, text, math;
+  if(s.type==='split10'){
+    const {extra,tenRem}=s;
+    // 4步驟（對齊提示邏輯）：
+    // 0: 顯示 a 隻 和 b 隻（兩個籃子）
+    // 1: 拆成 10(紅框) + extra − b
+    // 2: 10吸收b，變成tenRem(紅框) + extra
+    // 3: 合併成一個框 = result
+    const steps=[
+      { title:`步驟 1：認識狗狗`,
+        text:`公園裡有 ${a} 隻狗狗，等一下有 ${b} 隻要跑走。`,
+        math:`` },
+      { title:`步驟 2：把 ${a} 拆成 10 + ${extra}`,
+        text:`把 ${a} 拆成 10 和 ${extra}，用紅框的10來吸收跑走的 ${b} 隻。`,
+        math:`${a} = 10 + ${extra}` },
+      { title:`步驟 3：10 − ${b} = ${tenRem}`,
+        text:`紅框的10 吸收了 ${b} 隻，剩下 ${tenRem} 隻（紅框）和旁邊的 ${extra} 隻。`,
+        math:`10 − ${b} = ${tenRem}` },
+      { title:`✅ ${tenRem} + ${extra} = ${result}`,
+        text:`合起來就是 ${result} 隻！`,
+        math:`${tenRem} + ${extra} = ${result} 🐾` },
+    ];
+    const totalSteps_inner=4; // matches outer totalSteps for split10
+    ({title,text,math}=steps[step]);
+  } else {
+    const extra2 = a > 10 ? a-10 : 0;
+    const rem2   = a > 10 ? extra2-b : 0;
+    const stepsArr = a > 10 ? [
+      { title:'步驟 1：認識狗狗',
+        text:`公園裡有 ${a} 隻狗狗，等一下有 ${b} 隻要跑走。`,
+        math:'' },
+      { title:`步驟 2：把 ${a} 拆成 10 + ${extra2}`,
+        text:`把 ${a} 拆成 10 和 ${extra2}，${extra2} 夠減 ${b}，用紅框圈起來。`,
+        math:`${a} = 10 + ${extra2}` },
+      { title:`步驟 3：${extra2} − ${b} = ${rem2}`,
+        text:`紅框的 ${extra2} 隻跑走 ${b} 隻，剩 ${rem2} 隻（紅框）。`,
+        math:`${extra2} − ${b} = ${rem2}` },
+      { title:'✅ 再加上10！',
+        text:`10 + ${rem2} = ${result} 隻狗狗！`,
+        math:`10 + ${rem2} = ${result} 🐾` },
+    ] : [
+      { title:'步驟 1：認識狗狗',
+        text:`公園裡有 ${a} 隻狗狗，等一下有 ${b} 隻要跑走。`,
+        math:'' },
+      { title:`步驟 2：跑走 ${b} 隻`,
+        text:`${a} 隻跑走 ${b} 隻，還剩幾隻？`,
+        math:`${a} − ${b} = ？` },
+      { title:'✅ 答案出來了！',
+        text:`${a} 隻跑走 ${b} 隻，還剩 ${result} 隻狗狗！`,
+        math:`${a} − ${b} = ${result} 🐾` },
+    ];
+    ({title,text,math}=stepsArr[step]);
+  }
+
+  $('l-step-title').textContent=title;
+  $('l-step-text').textContent=text;
+  $('l-step-math').textContent=math;
+  $('l-step-disp').textContent=(step+1)+'/'+totalSteps;
+
+  renderLearnDogs(step, s);
+
+
+
+  const isLast=(step===totalSteps-1);
+  const nextBtn=$('btn-next-l');
+  if(isLast){
+    nextBtn.textContent='換一題 🐶';
+    nextBtn.className='btn btn-teal';
+    $('end-btns').style.display='flex';
+    confetti();
+  } else {
+    nextBtn.textContent='下一步 ▶';
+    nextBtn.className='btn btn-yellow';
+    $('end-btns').style.display='none';
+  }
+}
+
+function renderLearnDogs(step, s){
+  const {a,b,result}=lQ;
+  // 三區塊：extra(左) | ten(中) | gone(右)
+  const gE=$('dogs-extra'), gT=$('dogs-ten'), gG=$('dogs-gone');
+  const bE=$('basket-extra'), bT=$('basket-ten'), bG=$('basket-gone');
+  // 步驟2時左邊不清空（不重刷），其他每次都清
+  // Always clear all baskets - no selective skip (prevents accumulation bugs)
+  gE.innerHTML=''; gT.innerHTML=''; gG.innerHTML='';
+  $('basket-ten').style.borderColor='';
+  $('basket-ten').style.background='';
+  $('basket-ten').style.boxShadow='';
+  $('basket-extra').style.borderColor='';
+  $('basket-extra').style.background='';
+  $('basket-extra').style.boxShadow='';
+  [bE,bT,bG].forEach(x=>x.classList.remove('source','removed','result'));
+  // 每次重繪都先把所有區塊顯示回來
+  $('basket-extra').parentElement.style.display='';
+  $('l-op1-wrap').style.display='';
+  $('l-op2-wrap').style.display='';
+  $('l-gone-wrap').style.display='';
+
+  if(s.type==='split10'){
+    const {extra,tenRem}=s;
+    if(step===0){
+      // 步驟1：顯示全部 a 隻（左）和 b 隻（右），兩個籃子
+      $('basket-extra').parentElement.style.display='none';
+      $('l-op1-wrap').style.display='none';
+      $('l-op2-wrap').style.display='';
+      $('l-gone-wrap').style.display='';
+      for(let i=0;i<a;i++) gT.appendChild(makeDog('pop',i*22));
+      for(let i=0;i<b;i++) gG.appendChild(makeDog('pop',i*35));
+      bT.classList.add('source'); bG.classList.add('removed');
+      $('l-label-ten').textContent=a+' 隻';
+      $('l-label-gone').textContent=b+' 隻';
+    } else if(step===1){
+      // 步驟2：紅框10(左) + extra(中) − b(右暗)
+      $('basket-extra').parentElement.style.display='';
+      $('l-op1-wrap').style.display='';
+      $('l-op2-wrap').style.display='';
+      $('l-gone-wrap').style.display='';
+      // 左籃(basket-extra)放10隻，紅框
+      for(let i=0;i<10;i++)    gE.appendChild(makeDog('pop',i*22));
+      // 中籃(basket-ten)放extra隻
+      for(let i=0;i<extra;i++) gT.appendChild(makeDog('pop',i*40));
+      // 右籃放b隻（暗）
+      for(let i=0;i<b;i++)     gG.appendChild(makeDog('pop',i*35));
+      bE.classList.add('removed'); bT.classList.add('source'); bG.classList.add('removed');
+      // 紅框套在左籃(basket-extra)
+      $('basket-extra').style.borderColor='#E8453C';
+      $('basket-extra').style.background='#FFF0EE';
+      $('basket-extra').style.boxShadow='0 3px 0 #C0392B';
+      $('l-label-extra').textContent='10 隻（紅框）';
+      $('l-label-ten').textContent=extra+' 隻';
+      $('l-label-gone').textContent=b+' 隻';
+    } else if(step===2){
+      // 步驟3：左籃10吸收b變tenRem(紅框)，中籃extra不動，右側消失
+      $('l-op2-wrap').style.display='none';
+      $('l-gone-wrap').style.display='none';
+      // 左籃：tenRem隻留下，b隻跑走
+      for(let i=0;i<tenRem;i++) gE.appendChild(makeDog('pop',i*35));
+      for(let i=0;i<b;i++)      gE.appendChild(makeDog('leaving',i*55));
+      bE.classList.add('removed');
+      // 中籃：extra重填（因為現在每步都清空）
+      for(let i=0;i<extra;i++)  gT.appendChild(makeDog('pop',i*40));
+      bT.classList.add('source');
+      $('basket-extra').style.borderColor='#E8453C';
+      $('basket-extra').style.background='#FFF0EE';
+      $('basket-extra').style.boxShadow='0 3px 0 #C0392B';
+      $('l-label-extra').textContent='10−'+b+'='+tenRem+'（紅框）';
+    } else {
+      // 步驟4：合併成一個正常框（只用中間籃）
+      $('l-op1-wrap').style.display='none';
+      $('basket-extra').parentElement.style.display='none';
+      $('l-op2-wrap').style.display='none';
+      $('l-gone-wrap').style.display='none';
+      for(let i=0;i<result;i++) gT.appendChild(makeDog('pop',i*28));
+      bT.classList.add('result');
+      $('l-label-ten').textContent=tenRem+' + '+extra+' = '+result+' 隻！';
+    }
+  } else {
+    // simple（不需借位）
+    const extra2 = a > 10 ? a - 10 : 0;
+    const rem2   = a > 10 ? extra2 - b : 0;
+    if(a > 10){
+      // 步驟0: a隻(中) + b隻(右)，兩個籃子
+      // 步驟1: 10(左) + extra2紅框(中) - b(右亮)  → extra2夠減b，紅框圈extra2
+      // 步驟2: 10(左不動) + 紅框(extra2-b=rem2)(中) ，右消失
+      // 步驟3: 合併 10+rem2=result
+      if(step===0){
+        $('basket-extra').parentElement.style.display='none';
+        $('l-op1-wrap').style.display='none';
+        $('l-op2-wrap').style.display='';
+        $('l-gone-wrap').style.display='';
+        for(let i=0;i<a;i++) gT.appendChild(makeDog('pop',i*22));
+        for(let i=0;i<b;i++) gG.appendChild(makeDog('pop',i*35));
+        bT.classList.add('source'); bG.classList.add('removed');
+        $('l-label-ten').textContent=a+' 隻';
+        $('l-label-gone').textContent=b+' 隻';
+      } else if(step===1){
+        // 左籃放10，中籃放extra2（紅框），右籃放b（亮）
+        $('basket-extra').parentElement.style.display='';
+        $('l-op1-wrap').style.display='';
+        $('l-op2-wrap').style.display='';
+        $('l-gone-wrap').style.display='';
+        for(let i=0;i<10;i++)    gE.appendChild(makeDog('pop',i*22));
+        for(let i=0;i<extra2;i++) gT.appendChild(makeDog('pop',i*40));
+        for(let i=0;i<b;i++)     gG.appendChild(makeDog('pop',i*35));
+        bE.classList.add('source'); bT.classList.add('removed'); bG.classList.add('removed');
+        $('basket-ten').style.borderColor='#E8453C';
+        $('basket-ten').style.background='#FFF0EE';
+        $('basket-ten').style.boxShadow='0 3px 0 #C0392B';
+        $('l-label-extra').textContent='10 隻';
+        $('l-label-ten').textContent=extra2+' 隻（紅框，夠減）';
+        $('l-label-gone').textContent=b+' 隻';
+      } else if(step===2){
+        // 左籃10（重填），中籃extra2跑走b剩rem2（紅框），右側消失
+        $('l-op2-wrap').style.display='none';
+        $('l-gone-wrap').style.display='none';
+        for(let i=0;i<10;i++) gE.appendChild(makeDog('pop',i*22));
+        bE.classList.add('source');
+        for(let i=0;i<rem2;i++) gT.appendChild(makeDog('pop',i*35));
+        for(let i=0;i<b;i++)    gT.appendChild(makeDog('leaving',i*55));
+        bT.classList.add('removed');
+        $('basket-ten').style.borderColor='#E8453C';
+        $('basket-ten').style.background='#FFF0EE';
+        $('basket-ten').style.boxShadow='0 3px 0 #C0392B';
+        $('l-label-ten').textContent=extra2+'−'+b+'='+rem2+'（紅框）';
+      } else {
+        // 步驟4：合併成一個正常框
+        $('l-op1-wrap').style.display='none';
+        $('basket-extra').parentElement.style.display='none';
+        $('l-op2-wrap').style.display='none';
+        $('l-gone-wrap').style.display='none';
+        for(let i=0;i<result;i++) gT.appendChild(makeDog('pop',i*28));
+        bT.classList.add('result');
+        $('basket-ten').style.borderColor='';
+        $('basket-ten').style.background='';
+        $('basket-ten').style.boxShadow='';
+        $('l-label-ten').textContent='10 + '+rem2+' = '+result+' 隻！';
+      }
+    } else {
+      // 純個位：隱藏左邊extra，只用中間和右邊
+      $('basket-extra').parentElement.style.display='none';
+      $('l-op1-wrap').style.display='none';
+      $('l-op2-wrap').style.display='';
+      $('l-gone-wrap').style.display='';
+      if(step===0){
+        for(let i=0;i<a;i++) gT.appendChild(makeDog('pop',50+i*26));
+        for(let i=0;i<b;i++) gG.appendChild(makeDog('pop',i*40));
+        bT.classList.add('source'); bG.classList.add('removed');
+        $('l-label-ten').textContent=a+' 隻';
+        $('l-label-gone').textContent=b+' 隻';
+      } else if(step===1){
+        $('l-op2-wrap').style.display='none';
+        $('l-gone-wrap').style.display='none';
+        for(let i=0;i<result;i++) gT.appendChild(makeDog('pop',i*28));
+        for(let i=0;i<b;i++)      gT.appendChild(makeDog('leaving',i*50));
+        bT.classList.add('removed');
+        $('l-label-ten').textContent=a+'−'+b+'='+result;
+      } else {
+        $('l-op2-wrap').style.display='none';
+        $('l-gone-wrap').style.display='none';
+        for(let i=0;i<result;i++) gT.appendChild(makeDog('pop',i*30));
+        bT.classList.add('result');
+        $('l-label-ten').textContent='剩 '+result+' 隻！';
+      }
+    }
+  }
+}
+
+
+
+// ════════════════════
+//  PRACTICE MODE
+// ════════════════════
+let pScore=0,pQIdx=0,pStreak=0,pBestStreak=0,pCorrect=0;
+const TOTAL_P=10;
+let pQuestions=[],pCurHintShown=false;
+
+function startPractice(){
+  pScore=0;pQIdx=0;pStreak=0;pBestStreak=0;pCorrect=0;
+  _recentQs=[]; pQuestions=makeQuestionSet(TOTAL_P);
+  showScreen('screen-practice');
+  renderPracticeQ();
+}
+
+function renderPracticeQ(){
+  const q=pQuestions[pQIdx];
+  pCurHintShown=false;
+  $('p-score').textContent=pScore;
+  $('p-qnum').textContent=(pQIdx+1)+'/'+TOTAL_P;
+  $('p-streak').textContent=pStreak;
+  $('p-hint-area').style.display='none';
+  $('btn-hint').disabled=false;
+
+  $('p-equation').innerHTML=
+    `<span>${q.a}</span> <span class="op">−</span> <span>${q.b}</span> <span class="eq">=</span> <span class="ans">？</span>`;
+
+  const el=$('p-answers'); el.innerHTML='';
+  const correct=q.result;
+  const opts=new Set([correct]);
+  let tries=0;
+  while(opts.size<4&&tries<80){
+    tries++;
+    const d=Math.floor(Math.random()*5)+1;
+    const v=Math.random()>0.5?correct+d:correct-d;
+    if(v>=0&&v<=18&&v!==correct) opts.add(v);
+  }
+  shuffle([...opts]).forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.className='btn-ans'; btn.textContent=opt;
+    btn.onclick=()=>handlePracticeAnswer(opt,btn,correct);
+    el.appendChild(btn);
+  });
+}
+
+function handlePracticeAnswer(val,btn,correct){
+  document.querySelectorAll('#p-answers .btn-ans').forEach(b=>b.disabled=true);
+  const q=pQuestions[pQIdx];
+  const isCorrect=(val===correct);
+
+  if(isCorrect){
+    btn.classList.add('correct');
+    const bonus=pCurHintShown?5:10;
+    pScore+=bonus; pStreak++; pCorrect++;
+    if(pStreak>pBestStreak) pBestStreak=pStreak;
+    showToast(pStreak>=3?'🔥 連答'+pStreak+'題！+'+bonus:'✅ 答對！+'+bonus,'#27AE60');
+    confetti();
+    $('p-equation').innerHTML=
+      `<span>${q.a}</span> <span class="op">−</span> <span>${q.b}</span> <span class="eq">=</span> <span class="ans">${correct}</span>`;
+  } else {
+    btn.classList.add('wrong');
+    pStreak=0;
+    document.querySelectorAll('#p-answers .btn-ans').forEach(b=>{
+      if(Number(b.textContent)===correct) b.classList.add('correct');
+    });
+    showHint();
+    showToast('❌ 再試試看！','#E8453C');
+  }
+
+  $('p-score').textContent=pScore;
+  $('p-streak').textContent=pStreak;
+  setTimeout(()=>{
+    pQIdx++;
+    if(pQIdx>=TOTAL_P){ showResult(); return; }
+    renderPracticeQ();
+  },isCorrect?1400:2200);
+}
+
+function showHint(){
+  if(pCurHintShown) return;
+  pCurHintShown=true;
+  const q=pQuestions[pQIdx];
+  const s=strategy(q);
+  const el=$('p-hint-area');
+
+  const box = (bg, border, content) =>
+    `<span style="display:inline-block;background:${bg};border:2px solid ${border};border-radius:10px;padding:3px 10px;margin:0 2px;font-weight:900;color:${border};">${content}</span>`;
+
+  const circled = (n, color) =>
+    `<span style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;border:2.5px solid ${color};font-weight:900;color:${color};font-size:18px;margin:0 2px;">${n}</span>`;
+
+  let html = '';
+  if(s.type==='split10'){
+    const {extra,tenRem}=s;
+    // Step 1: 10 變紅色文字，不加圓圈
+    html += `<div style="margin-bottom:14px;">
+      <div style="font-size:12px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">步驟 1</div>
+      <div style="font-size:20px;font-weight:700;color:var(--text);line-height:2;">
+        ${q.a} − ${q.b} = <span style="color:#E8453C;font-weight:900;">10</span> + ${extra} − ${q.b}
+      </div>
+      <div style="font-size:13px;color:var(--text2);margin-top:2px;">把 ${q.a} 拆成 10 和 ${extra}，用紅色的10來減</div>
+    </div>`;
+    // Step 2: box around 10 - b
+    html += `<div style="margin-bottom:14px;">
+      <div style="font-size:12px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">步驟 2</div>
+      <div style="font-size:20px;font-weight:700;color:var(--text);line-height:2;">
+        ${box('#FFF0EE','#E8453C',`10 − ${q.b} = ${tenRem}`)} + ${extra}
+      </div>
+      <div style="font-size:13px;color:var(--text2);margin-top:2px;">先算紅框裡的，10 − ${q.b} = ${tenRem}</div>
+    </div>`;
+    // Step 3: final answer
+    html += `<div>
+      <div style="font-size:12px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">步驟 3</div>
+      <div style="font-size:20px;font-weight:700;color:var(--text);line-height:2;">
+        ${tenRem} + ${extra} = ${q.result} 🐾
+      </div>
+    </div>`;
+  } else {
+    const extra2 = q.a - 10; // a > 10 but doesn't need borrow: e.g. 14-3
+    if(q.a > 10){
+      // e.g. 14 - 3: split as 10 + extra2, extra2 >= b so extra2 is red
+      html += `<div style="margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">步驟 1</div>
+        <div style="font-size:20px;font-weight:700;color:var(--text);line-height:2;">
+          ${q.a} − ${q.b} = 10 + <span style="color:#E8453C;font-weight:900;">${extra2}</span> − ${q.b}
+        </div>
+        <div style="font-size:13px;color:var(--text2);margin-top:2px;">把 ${q.a} 拆成 10 和 ${extra2}，用紅色的 ${extra2} 來減</div>
+      </div>`;
+      const rem2 = extra2 - q.b;
+      html += `<div style="margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">步驟 2</div>
+        <div style="font-size:20px;font-weight:700;color:var(--text);line-height:2;">
+          10 + ${box('#FFF0EE','#E8453C',`${extra2} − ${q.b} = ${rem2}`)}
+        </div>
+        <div style="font-size:13px;color:var(--text2);margin-top:2px;">先算紅框裡的，${extra2} − ${q.b} = ${rem2}</div>
+      </div>`;
+      html += `<div>
+        <div style="font-size:12px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">步驟 3</div>
+        <div style="font-size:20px;font-weight:700;color:var(--text);line-height:2;">
+          10 + ${rem2} = ${q.result} 🐾
+        </div>
+      </div>`;
+    } else {
+      html += `<div>
+        <div style="font-size:12px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">直接算</div>
+        <div style="font-size:20px;font-weight:700;color:var(--text);line-height:2;">
+          ${q.a} − ${q.b} = ${q.result} 🐾
+        </div>
+      </div>`;
+    }
+  }
+
+  el.innerHTML = `<div style="background:var(--amber-bg);border:2px dashed var(--amber);border-radius:var(--radius-sm);padding:14px 16px;">${html}</div>`;
+  el.style.display='';
+}
+
+function showResult(){
+  showScreen('screen-result');
+  const pct=pCorrect/TOTAL_P;
+  let emoji,title;
+  if(pct===1){emoji='🏆';title='全對！狗狗愛死你了！';}
+  else if(pct>=0.8){emoji='🌟';title='好棒！差一點點全對！';}
+  else if(pct>=0.5){emoji='👍';title='不錯！繼續練習！';}
+  else {emoji='💪';title='加油！你一定可以的！';}
+  $('r-emoji').textContent=emoji;
+  $('r-title').textContent=title;
+  $('r-score').textContent=pScore;
+  $('r-correct').textContent=pCorrect+'/'+TOTAL_P;
+  $('r-streak').textContent=pBestStreak;
+  confetti(); setTimeout(confetti,400);
+}
+
+function confetti(){
+  const colors=['#C0692A','#F4A340','#2EC4B6','#FFD166','#E8453C','#27AE60'];
+  for(let i=0;i<24;i++){
+    const c=document.createElement('div');
+    c.className='confetti-piece';
+    c.style.cssText=`
+      left:${8+Math.random()*84}%;top:${Math.random()*25}%;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-delay:${Math.random()*0.5}s;
+      animation-duration:${1.2+Math.random()*0.8}s;
+      width:${7+Math.random()*8}px;height:${7+Math.random()*8}px;
+      border-radius:${Math.random()>0.5?'50%':'3px'};
+    `;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),2800);
+  }
+}
+
+// Init back button
+$('back-btn-wrap').innerHTML='<a href="index.html" style="display:inline-flex;align-items:center;gap:5px;background:white;border:3px solid #C0692A;border-radius:99px;padding:7px 16px 7px 12px;font-family:Nunito,sans-serif;font-size:14px;font-weight:800;color:#C0692A;text-decoration:none;box-shadow:0 3px 12px rgba(0,0,0,0.3);">← 首頁</a>';
+</script>
+</body>
+</html>

@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>貓咪加法樂園</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #F0F4FF;
+  --card:     #FFFFFF;
+  --purple:   #7C5CBF;
+  --purple2:  #5A3F99;
+  --lavender: #EDE8FF;
+  --pink:     #FF6B9D;
+  --pink2:    #D94F7E;
+  --pink-bg:  #FFF0F5;
+  --teal:     #2EC4B6;
+  --teal2:    #1A9E92;
+  --teal-bg:  #E8FAFA;
+  --yellow:   #FFD166;
+  --yellow2:  #E6B800;
+  --orange:   #FF9F43;
+  --green:    #06D6A0;
+  --green2:   #04A87E;
+  --green-bg: #E6FDF7;
+  --text:     #2D2047;
+  --text2:    #7B6FA0;
+  --border:   #DDD5F5;
+  --shadow:   rgba(124,92,191,0.12);
+  --radius:   20px;
+  --radius-sm:12px;
+  --moon:     #FFE566;
+}
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+/* ── Night sky background ── */
+.bg-scene {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: linear-gradient(180deg, #1A1040 0%, #2D1B6E 35%, #6B3FA0 65%, #C490D1 85%, #F0E8FF 100%);
+  overflow: hidden;
+}
+.star {
+  position: absolute; background: white; border-radius: 50%;
+  animation: twinkle ease-in-out infinite;
+}
+@keyframes twinkle { 0%,100%{opacity:0.2;transform:scale(1);} 50%{opacity:1;transform:scale(1.3);} }
+
+.moon {
+  position: absolute; top: 20px; right: 32px;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--moon);
+  box-shadow: 0 0 0 8px rgba(255,229,102,0.2), 0 0 30px rgba(255,229,102,0.4);
+}
+.moon::after {
+  content: ''; position: absolute;
+  top: 6px; right: 4px; width: 20px; height: 20px;
+  border-radius: 50%; background: #F0C040;
+  opacity: 0.4;
+}
+
+.ground {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 70px;
+  background: linear-gradient(180deg, #3D2070 0%, #2A1555 100%);
+  border-radius: 50% 50% 0 0 / 20px 20px 0 0;
+}
+/* little house silhouettes */
+.house {
+  position: absolute; bottom: 50px;
+  width: 0; height: 0;
+  border-left: solid transparent;
+  border-right: solid transparent;
+  border-bottom: solid #1A0C3F;
+}
+.house::after {
+  content: ''; position: absolute;
+  background: #1A0C3F;
+  bottom: 0; left: 50%; transform: translateX(-50%);
+}
+.h1 { left: 8%; border-left-width:22px; border-right-width:22px; border-bottom-width:28px; }
+.h1::after { width:28px; height:24px; left:calc(50% - 14px); bottom:-28px; }
+.h2 { left: 20%; border-left-width:16px; border-right-width:16px; border-bottom-width:20px; }
+.h2::after { width:20px; height:18px; left:calc(50% - 10px); bottom:-20px; }
+.h3 { right: 12%; border-left-width:28px; border-right-width:28px; border-bottom-width:34px; }
+.h3::after { width:34px; height:28px; left:calc(50% - 17px); bottom:-34px; }
+.h4 { right: 26%; border-left-width:18px; border-right-width:18px; border-bottom-width:22px; }
+.h4::after { width:22px; height:20px; left:calc(50% - 11px); bottom:-22px; }
+
+/* ── Layout ── */
+#app {
+  position: relative; z-index: 1;
+  max-width: 520px; margin: 0 auto;
+  padding: 20px 16px 100px;
+  min-height: 100vh;
+}
+
+/* ── Screens ── */
+.screen { display: none; }
+.screen.active { display: block; animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(14px);} to{opacity:1;transform:translateY(0);} }
+
+/* ── Cards ── */
+.card {
+  background: rgba(255,255,255,0.92);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 0 rgba(124,92,191,0.18), 0 8px 24px var(--shadow);
+  backdrop-filter: blur(8px);
+}
+
+/* ── Sign / header ── */
+.sign {
+  background: rgba(255,255,255,0.95);
+  border: 3px solid var(--purple);
+  border-radius: var(--radius);
+  padding: 14px 20px 18px;
+  text-align: center;
+  margin-bottom: 16px;
+  box-shadow: 0 5px 0 var(--purple2), 0 8px 24px var(--shadow);
+  position: relative;
+}
+.sign::before {
+  content: '🐱';
+  position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+  font-size: 34px;
+}
+.sign-title {
+  font-size: 24px; font-weight: 900; color: var(--purple);
+  margin-top: 10px; letter-spacing: 0.5px;
+}
+.sign-sub { font-size: 13px; color: var(--text2); margin-top: 3px; font-weight: 700; }
+
+/* ── Mode buttons ── */
+.mode-btns { display: flex; flex-direction: column; gap: 10px; }
+.btn-mode {
+  background: rgba(255,255,255,0.95);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px 18px;
+  cursor: pointer; text-align: left;
+  transition: all 0.15s;
+  box-shadow: 0 3px 0 rgba(124,92,191,0.15);
+  font-family: 'Nunito', sans-serif;
+}
+.btn-mode:hover { transform: translateY(-2px); border-color: var(--purple); box-shadow: 0 5px 0 var(--purple2); }
+.btn-mode:active { transform: translateY(1px); }
+.btn-mode-title { font-size: 16px; font-weight: 900; color: var(--purple); }
+.btn-mode-desc  { font-size: 13px; color: var(--text2); font-weight: 600; margin-top: 2px; }
+
+/* ── Score bar ── */
+.score-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  background: rgba(255,255,255,0.9); border: 2px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 3px 0 rgba(124,92,191,0.15);
+  backdrop-filter: blur(6px);
+}
+.score-item { text-align: center; }
+.score-val { font-size: 20px; font-weight: 900; }
+.score-val.sc { color: var(--purple); }
+.score-val.st { color: var(--pink); }
+.score-lbl { font-size: 10px; font-weight: 800; color: var(--text2); letter-spacing: 0.5px; text-transform: uppercase; }
+
+/* ── Question card ── */
+.q-card {
+  background: rgba(255,255,255,0.95);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 0 rgba(124,92,191,0.15), 0 6px 20px var(--shadow);
+  text-align: center;
+}
+.q-label { font-size: 11px; font-weight: 800; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.q-equation { font-size: 40px; font-weight: 900; color: var(--text); letter-spacing: 4px; }
+.q-equation .op  { color: var(--orange); }
+.q-equation .eq  { color: var(--text2); }
+.q-equation .ans { color: var(--purple); }
+
+/* ── Step explainer ── */
+.step-area {
+  background: var(--lavender);
+  border: 2px dashed var(--purple);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  min-height: 64px;
+}
+.step-title { font-size: 12px; font-weight: 900; color: var(--purple); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.step-text  { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.6; }
+.step-math  { font-size: 20px; font-weight: 900; color: var(--purple2); text-align: center; margin-top: 6px; }
+
+/* ── Cat baskets (cushions) ── */
+.baskets-wrapper {
+  display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start;
+}
+.basket-col { flex: 1; }
+.basket-label {
+  font-size: 11px; font-weight: 800; color: var(--text2);
+  text-transform: uppercase; letter-spacing: 0.5px;
+  text-align: center; margin-bottom: 5px;
+}
+.basket {
+  background: rgba(255,255,255,0.9);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 8px;
+  min-height: 80px;
+  position: relative;
+  box-shadow: 0 3px 0 rgba(124,92,191,0.2);
+  transition: all 0.3s;
+}
+.basket.target { border-color: var(--teal); background: var(--teal-bg); box-shadow: 0 3px 0 var(--teal2); }
+.basket.highlight {
+  border-color: var(--pink); background: var(--pink-bg);
+  box-shadow: 0 3px 0 var(--pink2), 0 0 0 3px rgba(255,107,157,0.2);
+  animation: bounce-basket 0.4s ease;
+}
+@keyframes bounce-basket { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-4px);} }
+
+.cats-grid { display: grid; grid-template-columns: repeat(5, 34px); gap: 4px; justify-content: center; }
+
+/* ── Cat item ── */
+.cat-item {
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; line-height: 1;
+  cursor: default; position: relative;
+}
+.cat-item.pop    { animation: pop-in 0.35s cubic-bezier(0.34,1.56,0.64,1) both; }
+.cat-item.dim    { opacity: 0.3; transform: scale(0.82); }
+.cat-item.glow   { animation: cat-bounce 0.5s ease infinite alternate; filter: drop-shadow(0 0 5px rgba(255,209,102,0.9)); }
+@keyframes pop-in    { from{transform:scale(0) rotate(-15deg);opacity:0;} to{transform:scale(1) rotate(0);opacity:1;} }
+@keyframes cat-bounce{ from{transform:scale(1) translateY(0);} to{transform:scale(1.15) translateY(-3px);} }
+
+/* ── Ten-frame ── */
+.ten-frame-wrap { margin-bottom: 12px; }
+.ten-frame-label { font-size: 11px; font-weight: 800; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; text-align: center; }
+.ten-frame {
+  display: grid; grid-template-columns: repeat(5,1fr); gap: 4px;
+  background: rgba(255,255,255,0.9);
+  border: 2px solid var(--border); border-radius: var(--radius-sm);
+  padding: 7px;
+  box-shadow: 0 3px 0 rgba(124,92,191,0.12);
+}
+.ten-cell {
+  aspect-ratio: 1; border-radius: 8px;
+  background: var(--lavender); border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; transition: all 0.3s;
+}
+.ten-cell.filled-a { background: var(--teal-bg); border-color: var(--teal); }
+.ten-cell.filled-b { background: var(--pink-bg); border-color: var(--pink); }
+.ten-cell.filled-new { animation: cell-pop 0.38s cubic-bezier(0.34,1.56,0.64,1) both; }
+@keyframes cell-pop { from{transform:scale(0);} to{transform:scale(1);} }
+
+/* ── Buttons ── */
+.btn-row { display: flex; gap: 10px; margin-bottom: 10px; }
+.btn {
+  flex: 1; padding: 13px 10px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 15px; font-weight: 800;
+  border-radius: var(--radius-sm);
+  cursor: pointer; transition: all 0.15s;
+  border: 2px solid transparent; letter-spacing: 0.3px;
+}
+.btn:active { transform: translateY(2px) !important; }
+
+.btn-purple { background:var(--purple); color:#fff; border-color:var(--purple2); box-shadow:0 4px 0 var(--purple2); }
+.btn-purple:hover { transform:translateY(-2px); box-shadow:0 6px 0 var(--purple2); }
+
+.btn-yellow { background:var(--yellow); color:var(--text); border-color:var(--yellow2); box-shadow:0 4px 0 var(--yellow2); }
+.btn-yellow:hover { transform:translateY(-2px); box-shadow:0 6px 0 var(--yellow2); }
+
+.btn-teal { background:var(--teal); color:#fff; border-color:var(--teal2); box-shadow:0 4px 0 var(--teal2); }
+.btn-teal:hover { transform:translateY(-2px); box-shadow:0 6px 0 var(--teal2); }
+
+.btn-ghost { background:rgba(255,255,255,0.9); color:var(--text2); border-color:var(--border); box-shadow:0 3px 0 rgba(124,92,191,0.15); font-size:13px; }
+.btn-ghost:hover { transform:translateY(-1px); border-color:var(--purple); }
+
+/* ── Answer buttons ── */
+.answers-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+.btn-ans {
+  padding:16px 8px; font-size:24px; font-weight:900;
+  background:rgba(255,255,255,0.92); border:2px solid var(--border);
+  border-radius:var(--radius-sm); cursor:pointer;
+  transition:all 0.15s; color:var(--text);
+  font-family:'Nunito',sans-serif;
+  box-shadow:0 3px 0 rgba(124,92,191,0.15);
+}
+.btn-ans:hover:not(:disabled) { border-color:var(--purple); color:var(--purple); transform:translateY(-2px); box-shadow:0 5px 0 var(--purple2); }
+.btn-ans.correct { background:var(--green-bg); border-color:var(--green); color:var(--green2); box-shadow:0 3px 0 var(--green2); }
+.btn-ans.wrong   { background:#F5F5F5; border-color:#CCC; color:#999; box-shadow:0 3px 0 #BBB; opacity:0.6; }
+.btn-ans:disabled { cursor:default; }
+
+/* ── Result ── */
+.result-card {
+  background:rgba(255,255,255,0.95);
+  border:3px solid var(--yellow);
+  border-radius:var(--radius);
+  padding:28px 20px; text-align:center;
+  box-shadow:0 6px 0 var(--yellow2), 0 12px 32px var(--shadow);
+}
+.result-emoji { font-size:60px; display:block; margin-bottom:6px; animation:bounce-big 1s ease infinite; }
+@keyframes bounce-big { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-14px);} }
+.result-title { font-size:26px; font-weight:900; color:var(--purple); }
+.result-score { font-size:54px; font-weight:900; color:var(--pink); }
+.result-sub   { font-size:13px; color:var(--text2); font-weight:700; margin-bottom:1rem; }
+.result-stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:1rem; }
+.r-stat { background:var(--lavender); border-radius:var(--radius-sm); padding:12px; border:2px solid var(--border); }
+.r-stat-val { font-size:22px; font-weight:900; color:var(--purple); }
+.r-stat-lbl { font-size:11px; color:var(--text2); font-weight:700; margin-top:2px; }
+
+/* ── Toast ── */
+.toast {
+  position:fixed; top:20px; left:50%; transform:translateX(-50%) translateY(-80px);
+  color:white; font-size:15px; font-weight:800;
+  padding:10px 22px; border-radius:99px;
+  transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  z-index:999; white-space:nowrap;
+  box-shadow:0 4px 16px rgba(0,0,0,0.2);
+}
+.toast.show { transform:translateX(-50%) translateY(0); }
+
+/* ── Confetti ── */
+.confetti-piece {
+  position:fixed; border-radius:2px; z-index:998; pointer-events:none;
+  animation:confetti-fall 1.6s ease-in forwards;
+}
+@keyframes confetti-fall {
+  0%  { transform:translateY(-20px) rotate(0deg); opacity:1; }
+  100%{ transform:translateY(100vh) rotate(720deg); opacity:0; }
+}
+</style>
+</head>
+<body>
+<div id="back-btn-wrap" style="position:fixed;top:14px;left:14px;z-index:9999;"></div>
+
+
+<!-- Night scene -->
+<div class="bg-scene" id="bg-scene">
+  <div class="moon"></div>
+  <div class="ground"></div>
+  <div class="house h1"></div>
+  <div class="house h2"></div>
+  <div class="house h3"></div>
+  <div class="house h4"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div id="app">
+
+  <!-- ── HOME ── -->
+  <div id="screen-home" class="screen active">
+    <div class="sign">
+      <div class="sign-title">🐱 貓咪加法樂園</div>
+      <div class="sign-sub">一起幫貓咪數數，18以內加法</div>
+    </div>
+    <div class="card" style="text-align:center; color:var(--text2); font-size:14px; font-weight:700; line-height:1.7;">
+      貓咪們要搬進新家！<br>先數左邊的貓、再數右邊的貓，<br>一起用<span style="color:var(--purple); font-weight:900;">湊10法</span>算出總共幾隻！
+    </div>
+    <div class="mode-btns">
+      <button class="btn-mode" onclick="startLearn()">
+        <div class="btn-mode-title">🎬 動畫教學</div>
+        <div class="btn-mode-desc">跟著步驟看貓咪怎麼湊10，有動畫解說</div>
+      </button>
+      <button class="btn-mode" onclick="startPractice()">
+        <div class="btn-mode-title">🎯 自己算算看</div>
+        <div class="btn-mode-desc">選出正確答案，不會可以看提示！</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── LEARN MODE ── -->
+  <div id="screen-learn" class="screen">
+    <div class="score-bar">
+      <div class="score-item"><div class="score-val sc" id="l-qnum">1</div><div class="score-lbl">題目</div></div>
+      <div class="score-item"><div class="score-val sc" id="l-step-disp">1/4</div><div class="score-lbl">步驟</div></div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-label">今天的題目</div>
+      <div class="q-equation" id="l-equation">？</div>
+    </div>
+
+    <div class="step-area">
+      <div class="step-title" id="l-step-title">準備開始</div>
+      <div class="step-text"  id="l-step-text">按下「下一步」看貓咪怎麼變魔術！🐱</div>
+      <div class="step-math"  id="l-step-math"></div>
+    </div>
+
+    <div class="baskets-wrapper">
+      <div class="basket-col">
+        <div class="basket-label" id="l-label-a">左邊</div>
+        <div class="basket" id="basket-a"><div class="cats-grid" id="cats-a"></div></div>
+      </div>
+      <div id="l-op-wrap" class="basket-col" style="flex:0.38;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:28px;">
+        <div style="font-size:34px;font-weight:900;color:var(--orange);">+</div>
+      </div>
+      <div id="l-b-wrap" class="basket-col">
+        <div class="basket-label" id="l-label-b">右邊</div>
+        <div class="basket" id="basket-b"><div class="cats-grid" id="cats-b"></div></div>
+      </div>
+    </div>
+
+    <div class="ten-frame-wrap" id="l-frame-wrap" style="display:none;">
+      <div class="ten-frame-label">🏠 十格小屋（湊10法）</div>
+      <div class="ten-frame" id="ten-frame"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="learnPrev()" id="btn-prev" disabled>◀ 上一步</button>
+      <button class="btn btn-yellow" onclick="learnNextOrNew()" id="btn-next-l">下一步 ▶</button>
+    </div>
+    <div class="btn-row" id="end-btns" style="display:none;">
+      <button class="btn btn-ghost" onclick="learnReplay()">🔁 重播</button>
+    </div>
+  </div>
+
+  <!-- ── PRACTICE MODE ── -->
+  <div id="screen-practice" class="screen">
+    <div class="score-bar">
+      <div class="score-item"><div class="score-val sc" id="p-score">0</div><div class="score-lbl">分數</div></div>
+      <div class="score-item"><div class="score-val sc" id="p-qnum">1/10</div><div class="score-lbl">題目</div></div>
+      <div class="score-item"><div class="score-val st" id="p-streak">0</div><div class="score-lbl">連答</div></div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-label">這題怎麼算？</div>
+      <div class="q-equation" id="p-equation">？</div>
+    </div>
+
+    <div id="p-hint-area" style="display:none; margin-bottom:12px;"></div>
+
+    <div class="answers-grid" id="p-answers"></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="showHint()" id="btn-hint">💡 看提示</button>
+    </div>
+  </div>
+
+  <!-- ── RESULT ── -->
+  <div id="screen-result" class="screen">
+    <div class="result-card">
+      <span class="result-emoji" id="r-emoji">🎉</span>
+      <div class="result-title" id="r-title">好棒！</div>
+      <div class="result-score" id="r-score">0</div>
+      <div class="result-sub">總分</div>
+      <div class="result-stats">
+        <div class="r-stat"><div class="r-stat-val" id="r-correct">0</div><div class="r-stat-lbl">答對題數</div></div>
+        <div class="r-stat"><div class="r-stat-val" id="r-streak">0</div><div class="r-stat-lbl">最高連答</div></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-purple" onclick="startPractice()">再玩一次 🔁</button>
+        <button class="btn btn-yellow" onclick="goHome()">← 貓咪首頁</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+const CAT = '🐱';
+function randCat(){ return CAT; }
+
+// ── Helpers ──
+function $(id){ return document.getElementById(id); }
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+  const wrap=$('back-btn-wrap');
+  if(id==='screen-home'){
+    wrap.innerHTML='<a href="index.html" style="display:inline-flex;align-items:center;gap:5px;background:white;border:3px solid #7C5CBF;border-radius:99px;padding:7px 16px 7px 12px;font-family:Nunito,sans-serif;font-size:14px;font-weight:800;color:#7C5CBF;text-decoration:none;box-shadow:0 3px 12px rgba(0,0,0,0.3);">← 首頁</a>';
+  } else {
+    wrap.innerHTML='<button onclick="goHome()" style="display:inline-flex;align-items:center;gap:5px;background:white;border:3px solid #7C5CBF;border-radius:99px;padding:7px 16px 7px 12px;font-family:Nunito,sans-serif;font-size:14px;font-weight:800;color:#7C5CBF;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,0.3);">← 貓咪首頁</button>';
+  }
+}
+function showToast(msg, color){
+  const t=$('toast'); t.textContent=msg; t.style.background=color||'#7C5CBF';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1900);
+}
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a; }
+
+// ── Stars in background ──
+(function makeStars(){
+  const scene=$('bg-scene');
+  for(let i=0;i<60;i++){
+    const s=document.createElement('div');
+    s.className='star';
+    const size=1+Math.random()*2.5;
+    s.style.cssText=`
+      left:${Math.random()*100}%;top:${Math.random()*55}%;
+      width:${size}px;height:${size}px;
+      animation-duration:${2+Math.random()*3}s;
+      animation-delay:${Math.random()*4}s;
+    `;
+    scene.appendChild(s);
+  }
+})();
+
+// ── Question generation ──
+// Supports a from 2-16, b from 1-9, sum 3-18
+// If a >= 10: no carry needed, just simple addition
+// If a < 10: force b to require crossing 10 (湊10法 applies)
+function makeQuestion(){
+  const a = Math.floor(Math.random()*15)+2; // 2..16
+  let b;
+  if(a >= 10){
+    // simple: b small enough sum ≤ 18
+    b = Math.floor(Math.random()*Math.min(8, 18-a))+1;
+  } else {
+    // force carry: b must bring sum over 10
+    const bMin = 10-a+1; // at least this to cross 10
+    const bMax = Math.min(9, 18-a);
+    if(bMin > bMax){ b=bMax; } // fallback
+    else b = bMin + Math.floor(Math.random()*(bMax-bMin+1));
+  }
+  return { a, b, sum: a+b };
+}
+
+// ── Determine strategy for a question ──
+// Returns: { type:'make10'|'simple', need, leftover }
+function strategy(q){
+  if(q.a >= 10){
+    return { type:'simple', need:0, leftover:q.b };
+  }
+  const need = 10-q.a;
+  const leftover = q.b-need;
+  return { type:'make10', need, leftover };
+}
+
+// ── Cat element factory ──
+function makeCat(anim, delay, dim, emoji){
+  const d=document.createElement('div');
+  d.className='cat-item';
+  d.textContent = emoji || randCat();
+  if(anim){ d.classList.add(anim); }
+  if(delay){ d.style.animationDelay=delay+'ms'; }
+  if(dim){ d.classList.add('dim'); }
+  return d;
+}
+
+// ════════════════════
+//  HOME
+// ════════════════════
+function goHome(){ showScreen('screen-home'); }
+
+// ════════════════════
+//  LEARN MODE
+// ════════════════════
+let lQ=null, lStep=0, lCatA=[], lCatB=[];
+
+function startLearn(){
+  lQ=makeQuestion(); lStep=0;
+  // Pre-assign cat emojis for consistency across steps
+  lCatA=Array.from({length:lQ.a},()=>randCat());
+  lCatB=Array.from({length:lQ.b},()=>randCat());
+  $('l-qnum').textContent='1';
+  $('l-frame-wrap').style.display='none';
+  $('end-btns').style.display='none';
+  const nb=$('btn-next-l');
+  nb.style.display='';
+  nb.textContent='下一步 ▶';
+  nb.className='btn btn-yellow';
+  $('btn-prev').disabled=true;
+  showScreen('screen-learn');
+  renderLearnStep(0);
+}
+
+function learnNewQ(){
+  lQ=makeQuestion(); lStep=0;
+  lCatA=Array.from({length:lQ.a},()=>randCat());
+  lCatB=Array.from({length:lQ.b},()=>randCat());
+  $('l-frame-wrap').style.display='none';
+  $('end-btns').style.display='none';
+  const nb=$('btn-next-l');
+  nb.style.display='';
+  nb.textContent='下一步 ▶';
+  nb.className='btn btn-yellow';
+  $('btn-prev').disabled=true;
+  renderLearnStep(0);
+}
+
+function learnReplay(){
+  lStep=0;
+  $('l-frame-wrap').style.display='none';
+  $('end-btns').style.display='none';
+  const nb=$('btn-next-l');
+  nb.style.display='';
+  nb.textContent='下一步 ▶';
+  nb.className='btn btn-yellow';
+  $('btn-prev').disabled=true;
+  renderLearnStep(0);
+}
+
+function learnNextOrNew(){
+  const maxStep = 2; // 3 steps total (0,1,2)
+  if(lStep>=maxStep){ learnNewQ(); return; }
+  learnNext();
+}
+
+function learnNext(){
+  const maxStep = strategy(lQ).type==='make10' ? 3 : 2;
+  lStep = Math.min(lStep+1, maxStep);
+  $('btn-prev').disabled=false;
+  renderLearnStep(lStep);
+}
+
+function learnPrev(){
+  lStep = Math.max(lStep-1, 0);
+  $('btn-prev').disabled=(lStep===0);
+  const nb=$('btn-next-l');
+  nb.style.display='';
+  nb.textContent='下一步 ▶';
+  nb.className='btn btn-yellow';
+  $('end-btns').style.display='none';
+  renderLearnStep(lStep);
+}
+
+function renderLearnStep(step){
+  const {a,b,sum}=lQ;
+  const s=strategy(lQ);
+
+  // ── Equation display ──
+  const ansDisp = (step===(s.type==='make10'?2:2)) ? `<span class="ans">${sum}</span>` : `<span class="ans">？</span>`;
+  $('l-equation').innerHTML=
+    `<span>${a}</span> <span class="op">+</span> <span>${b}</span> <span class="eq">=</span> ${ansDisp}`;
+
+  // ── Step content ──
+  let title, text, math, totalSteps;
+
+  if(s.type==='make10'){
+    totalSteps=3;
+    const steps=[
+      { title:'步驟 1：準備湊10',
+        text:`左邊 ${a} 隻，右邊 ${b} 隻。差 ${s.need} 隻就湊到10了，先閃爍的 ${s.need} 隻要過來！`,
+        math:`${a} + ${s.need} = 10` },
+      { title:'步驟 2：湊成10！',
+        text:`左邊變成10隻了！右邊還剩 ${s.leftover} 隻。`,
+        math:`10 + ${s.leftover} = ？` },
+      { title:'✅ 答案出來了！',
+        text:`10 加上 ${s.leftover} 就等於 ${sum}！`,
+        math:`10 + ${s.leftover} = ${sum} 🐱` },
+    ];
+    ({title,text,math}=steps[step]);
+    $('l-step-disp').textContent=(step+1)+'/'+totalSteps;
+  } else {
+    // simple (a≥10)
+    totalSteps=3;
+    const steps=[
+      { title:'步驟 1：認識貓咪',
+        text:`左邊已經有 ${a} 隻貓咪，右邊有 ${b} 隻貓咪。`,
+        math:'' },
+      { title:'步驟 2：從10開始數',
+        text:`${a} 再往後數 ${b} 格：${a}、${Array.from({length:b},(_,i)=>a+i+1).join('、')}`,
+        math:`${a} + ${b} = ？` },
+      { title:'✅ 答案出來了！',
+        text:`${a} 加上 ${b} 就等於 ${sum}！`,
+        math:`${a} + ${b} = ${sum} 🐾` },
+    ];
+    ({title,text,math}=steps[step]);
+    $('l-step-disp').textContent=(step+1)+'/'+totalSteps;
+  }
+
+  $('l-step-title').textContent=title;
+  $('l-step-text').textContent=text;
+  $('l-step-math').textContent=math;
+
+  // ── Render cats ──
+  renderLearnCats(step, s);
+
+  // ── Ten-frame (only for make10) ──
+  if(s.type==='make10' && step<=1){
+    $('l-frame-wrap').style.display='';
+    renderTenFrame(step, a, s);
+  } else {
+    $('l-frame-wrap').style.display='none';
+  }
+
+  // ── End state ──
+  const isLast=(step===(totalSteps-1));
+  const nextBtn=$('btn-next-l');
+  if(isLast){
+    nextBtn.textContent='換一題 🐱';
+    nextBtn.className='btn btn-teal';
+    $('end-btns').style.display='flex';
+    confetti();
+  } else {
+    nextBtn.textContent='下一步 ▶';
+    nextBtn.className='btn btn-yellow';
+    $('end-btns').style.display='none';
+  }
+}
+
+function renderLearnCats(step, s){
+  const {a,b,sum}=lQ;
+  const ga=$('cats-a'), gb=$('cats-b');
+  ga.innerHTML=''; gb.innerHTML='';
+  const bA=$('basket-a'), bB=$('basket-b');
+  bA.classList.remove('highlight','target');
+  bB.classList.remove('highlight','target');
+  $('l-op-wrap').style.display='';
+  $('l-b-wrap').style.display='';
+
+  if(s.type==='make10'){
+    const {need,leftover}=s;
+    if(step===0){
+      // 步驟1：左a隻，右邊need隻閃爍 + leftover隻暗
+      lCatA.forEach((e,i)=>ga.appendChild(makeCat('pop',50+i*32,false,e)));
+      lCatB.slice(0,need).forEach(e=>{ const c=makeCat('glow',0,false,e); gb.appendChild(c); });
+      lCatB.slice(need).forEach(e=>gb.appendChild(makeCat('',0,true,e)));
+      bA.classList.add('target'); bB.classList.add('highlight');
+      $('l-label-a').textContent=a+' 隻';
+      $('l-label-b').textContent=need+'隻閃爍 + '+leftover+'隻暗';
+    } else if(step===1){
+      // 步驟2：左10隻（a + need搬來），右leftover隻亮
+      [...lCatA,...lCatB.slice(0,need)].forEach((e,i)=>ga.appendChild(makeCat('pop',i*25,false,e)));
+      lCatB.slice(need).forEach((e,i)=>gb.appendChild(makeCat('pop',i*40,false,e)));
+      bA.classList.add('target');
+      $('l-label-a').textContent='10 隻！';
+      $('l-label-b').textContent=leftover+' 隻';
+    } else if(step===2){
+      // 步驟3：合併，隱藏右側
+      $('l-op-wrap').style.display='none';
+      $('l-b-wrap').style.display='none';
+      lCatA.concat(lCatB).forEach((e,i)=>ga.appendChild(makeCat('pop',i*22,false,e)));
+      bA.classList.add('target');
+      $('l-label-a').textContent=sum+' 隻！';
+    }
+  } else {
+    // simple
+    if(step===0){
+      lCatA.forEach((e,i)=>ga.appendChild(makeCat('pop',50+i*35,false,e)));
+      lCatB.forEach((e,i)=>gb.appendChild(makeCat('pop',60+i*35,false,e)));
+      $('l-label-a').textContent=a+' 隻';
+      $('l-label-b').textContent=b+' 隻';
+    } else if(step===1){
+      lCatA.forEach(e=>ga.appendChild(makeCat('',0,false,e)));
+      lCatB.forEach(e=>{ const c=makeCat('glow',0,false,e); gb.appendChild(c); });
+      bA.classList.add('target'); bB.classList.add('highlight');
+      $('l-label-a').textContent=a+' 隻（基礎）';
+      $('l-label-b').textContent='再加 '+b+' 隻';
+    } else {
+      lCatA.forEach(e=>ga.appendChild(makeCat('',0,false,e)));
+      lCatB.forEach((e,i)=>gb.appendChild(makeCat('pop',i*35,false,e)));
+      bA.classList.add('target');
+      $('l-label-a').textContent=a+' 隻';
+      $('l-label-b').textContent=b+' 隻';
+    }
+  }
+}
+
+function renderTenFrame(step, a, s){
+  const tf=$('ten-frame'); tf.innerHTML='';
+  const {need}=s;
+  for(let i=0;i<10;i++){
+    const cell=document.createElement('div');
+    cell.className='ten-cell';
+    if(step===0){
+      // 步驟1：只填左邊a隻（被加數）
+      if(i<a){ cell.classList.add('filled-a'); cell.textContent=lCatA[i]||'🐱'; }
+    } else if(step===1){
+      // 步驟2：填滿10，a隻原本 + need隻搬來
+      if(i<a){ cell.classList.add('filled-a'); cell.textContent=lCatA[i]||'🐱'; }
+      else {
+        cell.classList.add('filled-b','filled-new');
+        cell.textContent=lCatB[i-a]||'🐱';
+        cell.style.animationDelay=((i-a)*80)+'ms';
+      }
+    }
+    tf.appendChild(cell);
+  }
+}
+
+// ════════════════════
+//  PRACTICE MODE
+// ════════════════════
+let pScore=0,pQIdx=0,pStreak=0,pBestStreak=0,pCorrect=0;
+const TOTAL_P=10;
+let pQuestions=[],pCurHintShown=false;
+let pCatSetA=[],pCatSetB=[];
+
+function startPractice(){
+  pScore=0;pQIdx=0;pStreak=0;pBestStreak=0;pCorrect=0;
+  pQuestions=Array.from({length:TOTAL_P},makeQuestion);
+  showScreen('screen-practice');
+  renderPracticeQ();
+}
+
+function renderPracticeQ(){
+  const q=pQuestions[pQIdx];
+  pCurHintShown=false;
+
+
+  $('p-score').textContent=pScore;
+  $('p-qnum').textContent=(pQIdx+1)+'/'+TOTAL_P;
+  $('p-streak').textContent=pStreak;
+  $('p-hint-area').style.display='none';
+  $('btn-hint').disabled=false;
+
+  $('p-equation').innerHTML=
+    `<span>${q.a}</span> <span class="op">+</span> <span>${q.b}</span> <span class="eq">=</span> <span class="ans">？</span>`;
+
+
+
+  const el=$('p-answers'); el.innerHTML='';
+  const correct=q.sum;
+  const opts=new Set([correct]);
+  let tries=0;
+  while(opts.size<4&&tries<80){
+    tries++;
+    const d=Math.floor(Math.random()*5)+1;
+    const v=Math.random()>0.5?correct+d:correct-d;
+    if(v>0&&v<=22&&v!==correct) opts.add(v);
+  }
+  shuffle([...opts]).forEach(opt=>{
+    const b=document.createElement('button');
+    b.className='btn-ans';b.textContent=opt;
+    b.onclick=()=>handlePracticeAnswer(opt,b,correct);
+    el.appendChild(b);
+  });
+}
+
+function handlePracticeAnswer(val,btn,correct){
+  document.querySelectorAll('#p-answers .btn-ans').forEach(b=>b.disabled=true);
+  const q=pQuestions[pQIdx];
+  const isCorrect=(val===correct);
+
+  if(isCorrect){
+    btn.classList.add('correct');
+    const bonus=pCurHintShown?5:10;
+    pScore+=bonus; pStreak++; pCorrect++;
+    if(pStreak>pBestStreak) pBestStreak=pStreak;
+    showToast(pStreak>=3?'🔥 連答'+pStreak+'題！+'+bonus:'✅ 答對！+'+bonus,'#06D6A0');
+    confetti();
+    $('p-equation').innerHTML=
+      `<span>${q.a}</span> <span class="op">+</span> <span>${q.b}</span> <span class="eq">=</span> <span class="ans">${correct}</span>`;
+  } else {
+    btn.classList.add('wrong');
+    pStreak=0;
+    document.querySelectorAll('#p-answers .btn-ans').forEach(b=>{
+      if(Number(b.textContent)===correct) b.classList.add('correct');
+    });
+    showHint();
+    showToast('❌ 再試試看！','#FF6B9D');
+  }
+
+  $('p-score').textContent=pScore;
+  $('p-streak').textContent=pStreak;
+  setTimeout(()=>{
+    pQIdx++;
+    if(pQIdx>=TOTAL_P){ showResult(); return; }
+    renderPracticeQ();
+  },isCorrect?1400:2200);
+}
+
+function showHint(){
+  if(pCurHintShown) return;
+  pCurHintShown=true;
+  const q=pQuestions[pQIdx];
+  const s=strategy(q);
+  const el=$('p-hint-area');
+
+  const box=(bg,border,txt)=>
+    `<span style="display:inline-block;background:${bg};border:2px solid ${border};border-radius:10px;padding:3px 10px;margin:0 2px;font-weight:900;color:${border};">${txt}</span>`;
+
+  let html='';
+  if(s.type==='make10'){
+    const {need,leftover}=s;
+    html+=`<div style="margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:800;color:var(--purple);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">步驟 1</div>
+      <div style="font-size:20px;font-weight:700;color:var(--text);line-height:2;">
+        ${q.a} + ${q.b} = <span style="color:#FF6B9D;font-weight:900;">${q.a}</span> + ${need} + ${leftover}
+      </div>
+      <div style="font-size:13px;color:var(--text2);margin-top:2px;">把 ${q.b} 拆成 ${need} 和 ${leftover}，用紅色的 ${need} 來湊10</div>
+    </div>`;
+    html+=`<div style="margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:800;color:var(--purple);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">步驟 2</div>
+      <div style="font-size:20px;font-weight:700;color:var(--text);line-height:2;">
+        ${box('#FFF0F5','#FF6B9D',`${q.a} + ${need} = 10`)} + ${leftover}
+      </div>
+      <div style="font-size:13px;color:var(--text2);margin-top:2px;">先算紅框裡的，${q.a} + ${need} = 10</div>
+    </div>`;
+    html+=`<div>
+      <div style="font-size:12px;font-weight:800;color:var(--purple);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">步驟 3</div>
+      <div style="font-size:20px;font-weight:700;color:var(--text);line-height:2;">
+        10 + ${leftover} = ${q.sum} 🐱
+      </div>
+    </div>`;
+  } else {
+    html+=`<div>
+      <div style="font-size:12px;font-weight:800;color:var(--purple);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">直接算</div>
+      <div style="font-size:20px;font-weight:700;color:var(--text);line-height:2;">
+        ${q.a} + ${q.b} = ${q.sum} 🐱
+      </div>
+    </div>`;
+  }
+
+  el.innerHTML=`<div style="background:var(--lavender);border:2px dashed var(--purple);border-radius:var(--radius-sm);padding:14px 16px;">${html}</div>`;
+  el.style.display='';
+}
+
+// ── Result ──
+function showResult(){
+  showScreen('screen-result');
+  const pct=pCorrect/TOTAL_P;
+  let emoji,title;
+  if(pct===1){emoji='🏆';title='全對！貓咪最愛你了！';}
+  else if(pct>=0.8){emoji='🌟';title='好棒！差一點點全對！';}
+  else if(pct>=0.5){emoji='👍';title='不錯！繼續練習！';}
+  else {emoji='💪';title='加油！每次練習都進步！';}
+  $('r-emoji').textContent=emoji;
+  $('r-title').textContent=title;
+  $('r-score').textContent=pScore;
+  $('r-correct').textContent=pCorrect+'/'+TOTAL_P;
+  $('r-streak').textContent=pBestStreak;
+  confetti(); setTimeout(confetti,400);
+}
+
+// ── Confetti ──
+function confetti(){
+  const colors=['#7C5CBF','#FF6B9D','#2EC4B6','#FFD166','#FF9F43','#06D6A0'];
+  for(let i=0;i<24;i++){
+    const c=document.createElement('div');
+    c.className='confetti-piece';
+    c.style.cssText=`
+      left:${8+Math.random()*84}%;top:${Math.random()*25}%;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-delay:${Math.random()*0.5}s;
+      animation-duration:${1.2+Math.random()*0.8}s;
+      width:${7+Math.random()*8}px;height:${7+Math.random()*8}px;
+      border-radius:${Math.random()>0.5?'50%':'3px'};
+    `;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),2800);
+  }
+}
+
+// Init back button
+$('back-btn-wrap').innerHTML='<a href="index.html" style="display:inline-flex;align-items:center;gap:5px;background:white;border:3px solid #7C5CBF;border-radius:99px;padding:7px 16px 7px 12px;font-family:Nunito,sans-serif;font-size:14px;font-weight:800;color:#7C5CBF;text-decoration:none;box-shadow:0 3px 12px rgba(0,0,0,0.3);">← 首頁</a>';
+</script>
+</body>
+</html>
